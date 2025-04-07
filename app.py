@@ -80,3 +80,29 @@ GOALIE_STATS = {
 
 st.sidebar.markdown("### 📥 Add CSV Data URLs")
 default_url = "https://raw.githubusercontent.com/Aburrows28/Cinco/main/example_games.csv"
+url_input = st.sidebar.text_area("Enter one or more CSV URLs (one per line):", value=default_url, height=150)
+urls = [url.strip() for url in url_input.splitlines() if url.strip()]
+
+@st.cache_data
+def load_data(urls):
+    all_frames = []
+    for url in urls:
+        try:
+            df = pd.read_csv(url)
+            df = df[['date', 'homeTeam', 'awayTeam', 'homeGoals', 'awayGoals']]
+            df.dropna(inplace=True)
+            df['date'] = pd.to_datetime(df['date'], errors='coerce')
+            df.dropna(subset=['date'], inplace=True)
+            df['homeWin'] = (df['homeGoals'] > df['awayGoals']).astype(int)
+            all_frames.append(df)
+        except Exception as e:
+            st.sidebar.error(f"❌ Failed to load data from URL:
+{url}
+
+**Error:** {e}")
+    if not all_frames:
+        st.error("❌ No valid data was loaded. Please check your URLs or upload a correct CSV.")
+        st.stop()
+    return pd.concat(all_frames, ignore_index=True)
+
+df = load_data(urls)
