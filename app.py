@@ -78,13 +78,13 @@ GOALIE_STATS = {
     'Colorado Avalanche': {'sv%': 0.873, 'gaa': 3.69, 'so': 0}
 }
 
-@st.cache_data
+st.sidebar.markdown("### 📥 Add CSV Data URLs")
+default_url = "https://raw.githubusercontent.com/OpenNHL/statistics/main/RegularSeason/games.csv"
+url_input = st.sidebar.text_area("Enter one or more CSV URLs (one per line):", value=default_url, height=150)
+urls = [url.strip() for url in url_input.splitlines() if url.strip()]
 
-def load_data():
-    default_url = "https://raw.githubusercontent.com/OpenNHL/statistics/main/RegularSeason/games.csv"
-    st.sidebar.markdown("### 📥 Add CSV Data URLs")
-    url_input = st.sidebar.text_area("Enter one or more CSV URLs (one per line):", value=default_url, height=150)
-    urls = [url.strip() for url in url_input.splitlines() if url.strip()]
+@st.cache_data
+def load_data(urls):
     all_frames = []
     for url in urls:
         try:
@@ -250,7 +250,7 @@ model_options = {
 
 model_choice = st.sidebar.selectbox("Select Prediction Model", list(model_options.keys()))
 model = model_options[model_choice]
-df = load_data()
+df = load_data(urls)
 feature_df = build_features(df)
 X = feature_df.drop('homeWin', axis=1)
 y = feature_df['homeWin']
